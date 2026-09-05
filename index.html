@@ -6,10 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0d0f1e" />
     <title>LifeHub — Life, Finance & Splitwise</title>
-    <script type="module" crossorigin src="/LifeHub/assets/index-_GS5Cvav.js"></script>
+    <script type="module" crossorigin src="/LifeHub/assets/index-CKdQCPWA.js"></script>
     <link rel="stylesheet" crossorigin href="/LifeHub/assets/index-CDRkud7M.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+(function(){
+  var q=location.search;
+  if(q.indexOf('?/')===0){
+    var raw=q.slice(2).replace(/~and~/g,'&');
+    var amp=raw.indexOf('&');
+    var route=amp>=0?raw.slice(0,amp):raw;
+    var extra=amp>=0?raw.slice(amp+1):'';
+    var target='/LifeHub/'+route+(extra?'?'+extra:'');
+    history.replaceState(null,'',target+location.hash);
+  }
+})();
+</script>
   </body>
 </html>
