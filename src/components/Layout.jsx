@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { QuickAddProvider, useQuickAdd } from '../context/QuickAddContext'
 import GlobalSearchModal from './GlobalSearchModal'
+import { recordPageVisit, heartbeatSession } from '../lib/activity'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutGrid, end: true },
@@ -50,6 +51,24 @@ function LayoutInner() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  useEffect(() => {
+    if (!user?.id) return
+
+    recordPageVisit(location.pathname)
+  }, [user?.id, location.pathname])
+
+  useEffect(() => {
+    if (!user?.id) return
+
+    heartbeatSession()
+
+    const interval = setInterval(() => {
+      heartbeatSession()
+    }, 60000)
+
+    return () => clearInterval(interval)
+  }, [user?.id])
 
   const handleLogout = () => {
     if (confirmingLogout) {
