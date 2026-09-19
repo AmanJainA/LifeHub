@@ -28,7 +28,7 @@ export async function recordPageVisit(pageName) {
   const { error } = await supabase.rpc('record_page_visit', {
     p_user_id: session.profile.id,
     p_session_id: session.activitySessionId,
-    p_page_name: pageName || window.location.pathname,
+    p_page_name: pageName || `${window.location.pathname}${window.location.search}${window.location.hash}`,
     p_ip_address: null,
   })
 
