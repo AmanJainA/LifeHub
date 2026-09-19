@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@theme {
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Dark theme is the default value set of these tokens. Light theme overrides
+     them below via [data-theme="light"] — utilities like bg-ink/text-muted
+     read the CSS variable, so no class names change between themes. */
+  --color-ink: #0d0f1e;
+  --color-surface: #161933;
+  --color-surface-2: #1e2145;
+  --color-surface-3: #262a58;
+  --color-border: #2b2f5c;
+  --color-text: #eef0fb;
+  --color-muted: #9498c2;
+  --color-accent: #f5a623;
+  --color-accent-dim: #7a5717;
+  --color-teal: #35d0c0;
+  --color-danger: #ff6b6b;
+  --color-success: #4ade80;
+
+  /* Fixed dark text used on top of accent/success/danger colored surfaces
+     (buttons, badges) — stays dark in BOTH themes so those surfaces always
+     have readable text, regardless of whether --color-ink is dark or light. */
+  --color-onaccent: #14162b;
+}
+
+/* Light theme — activated when <html data-theme="light">, which ThemeContext
+   sets automatically from the OS/browser color-scheme preference (and can be
+   overridden manually). Only the palette changes; layout stays identical. */
+:root[data-theme='light'] {
+  --color-ink: #f4f5fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f2f3fa;
+  --color-surface-3: #e6e8f5;
+  --color-border: #dfe1f0;
+  --color-text: #14162b;
+  --color-muted: #6b6f96;
+  --color-accent: #b45309;
+  --color-accent-dim: #f3d9b1;
+  --color-teal: #0d9488;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--color-ink);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(245, 166, 35, 0.07), transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(53, 208, 192, 0.06), transparent 40%);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+.font-mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.text-onaccent { color: var(--color-onaccent); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-surface-3); border-radius: 8px; }
+
+*:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
