@@ -13,7 +13,6 @@ async function callAuth(action, payload) {
     },
   })
 
-  // Successful response
   if (!error) {
     if (data?.error) {
       throw new Error(data.error)
@@ -25,19 +24,12 @@ async function callAuth(action, payload) {
   console.log('[callAuth] Supabase error:', error)
   console.log('[callAuth] error context:', error.context)
 
-  // --------------------------------------------------
-  // IMPORTANT:
-  // Supabase FunctionsHttpError stores the actual
-  // Edge Function Response in error.context
-  // --------------------------------------------------
-
   let actualMessage = null
 
   try {
     const response = error.context
 
     if (response) {
-      // Clone so we don't consume the original response
       const clonedResponse =
         typeof response.clone === 'function'
           ? response.clone()
@@ -57,7 +49,6 @@ async function callAuth(action, payload) {
             json?.error_description ||
             null
         } catch {
-          // Response wasn't JSON
           actualMessage = text
         }
       }
@@ -66,22 +57,9 @@ async function callAuth(action, payload) {
     console.error('[callAuth] Could not parse error response:', parseError)
   }
 
-  // --------------------------------------------------
-  // If Edge Function sent:
-  //
-  // {"error":"Invalid email or password."}
-  //
-  // this will now be shown to the user.
-  // --------------------------------------------------
-
   if (actualMessage) {
     throw new Error(actualMessage)
   }
-
-  // --------------------------------------------------
-  // Fallback only when we genuinely don't have an
-  // application-level error message.
-  // --------------------------------------------------
 
   throw new Error(
     error.message || 'Something went wrong. Please try again.'
@@ -144,12 +122,15 @@ export function AuthProvider({ children }) {
     const result = await callAuth('login', {
       email: email.trim().toLowerCase(),
       password,
+      page: window.location.pathname,
     })
 
     saveSession({
       token: result.token,
       expiresAt: Date.now() + result.expiresIn * 1000,
       profile: result.profile,
+      sessionId: result.sessionId,
+      activitySessionId: result.activitySessionId,
     })
 
     setAuthToken(result.token)
@@ -158,11 +139,17 @@ export function AuthProvider({ children }) {
     return result
   }
 
-  const signOut = () => {
-    clearSession()
-    setAuthToken(null)
-    setProfile(null)
-    window.location.replace('/LifeHub/login')
+  const signOut = async () => {
+    try {
+      await callAuth('logout', {})
+    } catch (error) {
+      console.error('[auth] logout failed:', error)
+    } finally {
+      clearSession()
+      setAuthToken(null)
+      setProfile(null)
+      window.location.replace('/LifeHub/login')
+    }
   }
 
   const resendVerification = (email) =>
