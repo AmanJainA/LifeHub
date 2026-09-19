@@ -55,8 +55,9 @@ function LayoutInner() {
   useEffect(() => {
     if (!user?.id) return
 
-    recordPageVisit(location.pathname)
-  }, [user?.id, location.pathname])
+    const pageName = `${location.pathname}${location.search}${location.hash}`
+    recordPageVisit(pageName)
+  }, [user?.id, location.pathname, location.search, location.hash])
 
   useEffect(() => {
     if (!user?.id) return
