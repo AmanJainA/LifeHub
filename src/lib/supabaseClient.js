@@ -8,40 +8,37 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 const baseUrl = supabaseUrl || 'https://wrssvnvagpnvlwhnqqta.supabase.co'
 const baseKey = supabaseAnonKey || 'sb_publishable_AEu-JBRYrCLYrVq3VjAtyA_ya5ApyuM'
 
-// --------------------------------------------------------------------
-// Custom-auth token handling.
-//
-// We no longer use supabase.auth.signIn/signUp (see AuthContext.jsx).
-// Instead, our own Edge Function ("custom-auth") signs a JWT after a
-// successful login. We attach that JWT as a plain Authorization header
-// on a fresh Supabase client instance, so every `supabase.from(...)`
-// call elsewhere in the app keeps working completely unchanged — RLS's
-// auth.uid() resolves correctly because the JWT's `sub` claim is the
-// profile's id.
-//
-// The exported `supabase` is a Proxy that always forwards to whichever
-// client instance is "current", so existing imports/usages don't need
-// to change when the token is set or cleared.
-// --------------------------------------------------------------------
-function buildClient(token) {
-  return createClient(baseUrl, baseKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: token ? { headers: { Authorization: `Bearer ${token}` } } : {},
-  })
-}
+// LifeHub uses custom authentication.
+// The JWT issued by custom-auth is stored in localStorage and is supplied
+// dynamically to every Supabase request through accessToken(). This avoids
+// stale Authorization headers when a user logs in, logs out, or refreshes
+// the page. The API key remains the public Supabase publishable/anon key;
+// the user's custom JWT is sent separately as the Authorization bearer token.
 
-let currentClient = buildClient(null)
+const getStoredToken = () => {
+  try {
+    return localStorage.getItem('lifehub_custom_token') || null
+  } catch {
+    return null
+  }
+}
 
 export function setAuthToken(token) {
-  currentClient = buildClient(token || null)
+  // Kept for AuthContext compatibility.
+  // The Supabase client reads the latest token directly from localStorage.
+  if (token) {
+    try {
+      localStorage.setItem('lifehub_custom_token', token)
+    } catch {
+      // Ignore storage errors; the next request will simply be unauthenticated.
+    }
+  }
 }
 
-export const supabase = new Proxy(
-  {},
-  {
-    get(_target, prop) {
-      const value = currentClient[prop]
-      return typeof value === 'function' ? value.bind(currentClient) : value
-    },
+export const supabase = createClient(baseUrl, baseKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
   },
-)
+  accessToken: async () => getStoredToken(),
+})
