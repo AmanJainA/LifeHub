@@ -5,8 +5,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
-const baseUrl = supabaseUrl || 'https://ixjdjvkktlzgiyojnsto.supabase.co'
-const baseKey = supabaseAnonKey || 'sb_publishable_Qb66X-cvzAckaQev2ku1VA__CoLmIB1'
+const baseUrl = supabaseUrl || 'https://wrssvnvagpnvlwhnqqta.supabase.co'
+const baseKey = supabaseAnonKey || 'sb_publishable_AEu-JBRYrCLYrVq3VjAtyA_ya5ApyuM'
 
 // --------------------------------------------------------------------
 // Custom-auth token handling.
