@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -59,5 +57,4 @@ export async function customAuth(action, payload = {}) {
   return data
 }
 
-// Use the same JWT-independent client as the rest of LifeHub.
 export { supabase } from './supabaseClient'
