@@ -6,32 +6,58 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
 const baseUrl = supabaseUrl || 'https://wrssvnvagpnvlwhnqqta.supabase.co'
-const baseKey = supabaseAnonKey || 'sb_publishable_AEu-JBRYrCLYrVq3VjAtyA_ya5ApyuM'
+const baseKey = supabaseAnonKey || 'sb_publishable_AEu-JBRYrCLYrVq3VjAtyA_ya5ApyM'
 
-// LifeHub uses custom authentication.
-// The JWT issued by custom-auth is stored in localStorage and is supplied
-// dynamically to every Supabase request through accessToken(). This avoids
-// stale Authorization headers when a user logs in, logs out, or refreshes
-// the page. The API key remains the public Supabase publishable/anon key;
-// the user's custom JWT is sent separately as the Authorization bearer token.
+const SESSION_KEY = 'lifehub_session_v2'
+const TOKEN_KEY = 'lifehub_custom_token'
 
-const getStoredToken = () => {
+const getStoredSessionId = () => {
   try {
-    return localStorage.getItem('lifehub_custom_token') || null
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw) return null
+    const session = JSON.parse(raw)
+    return session?.sessionId || null
   } catch {
     return null
   }
 }
 
+const getStoredToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || null
+  } catch {
+    return null
+  }
+}
+
+// CRUD requests never send the custom JWT. They use the public API key
+// plus the opaque server-tracked LifeHub session header. This keeps
+// PostgREST CRUD independent of HS256/ES256 JWT signing keys.
+const lifeHubFetch = async (input, init = {}) => {
+  const headers = new Headers(
+    init?.headers || (input instanceof Request ? input.headers : undefined)
+  )
+
+  headers.delete('Authorization')
+
+  const sessionId = getStoredSessionId()
+  if (sessionId) headers.set('x-lifehub-session', sessionId)
+  else headers.delete('x-lifehub-session')
+
+  return fetch(input, {
+    ...init,
+    headers,
+  })
+}
+
 export function setAuthToken(token) {
-  // Kept for AuthContext compatibility.
-  // The Supabase client reads the latest token directly from localStorage.
-  if (token) {
-    try {
-      localStorage.setItem('lifehub_custom_token', token)
-    } catch {
-      // Ignore storage errors; the next request will simply be unauthenticated.
-    }
+  // Kept for AuthContext compatibility. This token is no longer used
+  // for PostgREST CRUD requests.
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token)
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    // Ignore storage errors.
   }
 }
 
@@ -40,5 +66,7 @@ export const supabase = createClient(baseUrl, baseKey, {
     persistSession: false,
     autoRefreshToken: false,
   },
-  accessToken: async () => getStoredToken(),
+  global: {
+    fetch: lifeHubFetch,
+  },
 })
