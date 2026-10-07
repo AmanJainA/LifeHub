@@ -22,14 +22,6 @@ const getStoredSessionId = () => {
   }
 }
 
-const getStoredToken = () => {
-  try {
-    return localStorage.getItem(TOKEN_KEY) || null
-  } catch {
-    return null
-  }
-}
-
 // CRUD requests never send the custom JWT. They use the public API key
 // plus the opaque server-tracked LifeHub session header. This keeps
 // PostgREST CRUD independent of HS256/ES256 JWT signing keys.
